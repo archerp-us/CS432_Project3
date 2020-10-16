@@ -79,19 +79,39 @@ Symbol* lookup_symbol_with_reporting(NodeVisitor* visitor, ASTNode* node, const 
  */
 #define GET_INFERRED_TYPE(N) (DecafType)ASTNode_get_attribute(N, "type")
 
+//Solution
+void AnalysisVisitor_check_vardecl (NodeVisitor* visitor, ASTNode* node)
+{
+	if (node->vardecl.type == VOID)
+	{
+		ErrorList_printf(ERROR_LIST, "Void variable '%s' on line %d",
+			node->vardecl.name, node->source_line);
+	}
+}
+//
+
 ErrorList* analyze (ASTNode* tree)
 {
+	// Solution
+	if (tree == NULL)
+	{
+		return ErrorList_new();
+	}
+	//
+	
     /* allocate analysis structures */
     NodeVisitor* v = NodeVisitor_new();
     v->data = (void*)AnalysisData_new();
     v->dtor = (Destructor)AnalysisData_free;
 
     /* BOILERPLATE: TODO: register analysis callbacks */
-
+	// Solution
+		v->postvisit_vardecl = AnalysisVisitor_check_vardecl;
+	//
+	
     /* perform analysis, save error list, clean up, and return errors */
     NodeVisitor_traverse(v, tree);
     ErrorList* errors = ((AnalysisData*)v->data)->errors;
     NodeVisitor_free(v);
     return errors;
 }
-
