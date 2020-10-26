@@ -1,6 +1,7 @@
 /**
  * @file p3-analysis.c
  * @brief Compiler phase 3: static analysis
+ * @author Philip Archer and Xinzhe He
  */
 #include "p3-analysis.h"
 
@@ -88,6 +89,19 @@ void AnalysisVisitor_check_vardecl (NodeVisitor* visitor, ASTNode* node)
 			node->vardecl.name, node->source_line);
 	}
 }
+
+void AnalysisVisitor_check_location (NodeVisitor* visitor, ASTNode* node)
+{
+	lookup_symbol_with_reporting(visitor, node, node->location.name);
+}
+
+void AnalysisVisitor_check_main (NodeVisitor* visitor, ASTNode* node)
+{
+	/*if (lookup_symbol(node, node->funcdecl.name) == NULL)
+	{
+		printf("Program does not contain 'main' function");
+	}*/
+}
 //
 
 ErrorList* analyze (ASTNode* tree)
@@ -107,6 +121,8 @@ ErrorList* analyze (ASTNode* tree)
     /* BOILERPLATE: TODO: register analysis callbacks */
 	// Solution
 		v->postvisit_vardecl = AnalysisVisitor_check_vardecl;
+		v->postvisit_location = AnalysisVisitor_check_location;
+		v->postvisit_program = AnalysisVisitor_check_main;
 	//
 	
     /* perform analysis, save error list, clean up, and return errors */
