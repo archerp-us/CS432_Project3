@@ -97,10 +97,15 @@ void AnalysisVisitor_check_location (NodeVisitor* visitor, ASTNode* node)
 
 void AnalysisVisitor_check_main (NodeVisitor* visitor, ASTNode* node)
 {
-	/*if (lookup_symbol(node, node->funcdecl.name) == NULL)
-	{
-		printf("Program does not contain 'main' function");
-	}*/
+    Symbol* symbol = lookup_symbol_with_reporting(visitor, node, "main");
+    if (symbol == NULL) {
+        ErrorList_printf(ERROR_LIST, "Main function undefined on line %d", node->source_line);
+    }
+    else {
+        if (symbol->type != INT || node->funcdecl.parameters != NULL) {
+            ErrorList_printf(ERROR_LIST, "Main function defined incorrect on line %d", node->source_line);
+        }
+    }
 }
 //
 
