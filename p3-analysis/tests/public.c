@@ -25,7 +25,8 @@ TEST_VALID_MAIN(C_assign,  "int i; i = 3; return 0;")
 TEST_INVALID(D_invalid_no_main,        "int a;")
 TEST_INVALID_MAIN(D_invalid_void_var,  "void a;")
 TEST_INVALID_MAIN(D_invalid_undef_var, "return a;")
-TEST_INVALID_MAIN(C_invalid_dup_vars, "int a; int a; return 0;")
+TEST_INVALID_MAIN(B_invalid_dup_var_global, "int a; bool b; int a; return 0;")
+//TEST_INVALID_MAIN(C_invalid_dup_vars, "int a; int a; return 0;") //changed to B level test above
 TEST_INVALID_MAIN(C_invalid_break,    "break; return 0;")
 TEST_INVALID(C_var_type_mismatch,     "int x; def int main() { x=false; return 0; }")
 TEST_INVALID(C_invalid_conditional,   "def int main() { if (1) { return 0; } }")
@@ -51,11 +52,12 @@ void public_tests (Suite *s)
     TEST(D_invalid_undef_var);
 
     TEST(C_assign);
-    TEST(C_invalid_dup_vars);
+    //TEST(C_invalid_dup_vars); //changed to B level test
     TEST(C_invalid_break);
     TEST(C_var_type_mismatch);
     TEST(C_invalid_conditional);
 
+	TEST(B_invalid_dup_var_global);
     TEST(B_expr_type_mismatch);
     TEST(B_mismatched_parameters);
 
