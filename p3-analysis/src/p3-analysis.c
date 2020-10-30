@@ -107,6 +107,48 @@ void AnalysisVisitor_check_main (NodeVisitor* visitor, ASTNode* node)
         }
     }
 }
+
+void AnalysisVisitor_var_type_mismatch (NodeVisitor* visitor, ASTNode* node)
+{
+	if (node->assignment.location->literal.type != node->assignment.value->literal.type)
+	{
+		ErrorList_printf(ERROR_LIST, "Variable '%s' type mismatch on line %d",
+			node->vardecl.name, node->source_line);
+	}
+}
+
+// void AnalysisVisitor_expr_type_mismatch (NodeVisitor* visitor, ASTNode* node)
+// {
+
+// if (node->assignment.location->vardecl.type != node->literal.type)
+
+// 	if (node->assignment.value->literal.type != node->vardecl.type)
+// 	{
+// 		ErrorList_printf(ERROR_LIST, "Variable '%s' type mismatch on line %d",
+// 			node->vardecl.name, node->source_line);
+// 	}
+// }
+
+// void AnalysisVisitor_check_array (NodeVisitor* visitor, ASTNode* node)
+// {
+// 	if (node->location.index == NULL)
+// 	{
+// 		ErrorList_printf(ERROR_LIST, "Array '%s' accesses without an index on line %d",
+// 			node->vardecl.name, node->source_line);
+// 	}
+// }
+
+// void AnalysisVisitor_check_dup (NodeVisitor* visitor, ASTNode* node)
+// {
+//     while (node != NULL)
+//         while (node->next != NULL)
+//             if (node->type == node->next->type && node->attributes) {
+//                 ErrorList_printf(ERROR_LIST, "Main function defined incorrect on line %d", node->source_line);
+//             }
+//         }
+//     }
+// }
+
 //
 
 ErrorList* analyze (ASTNode* tree)
@@ -128,6 +170,8 @@ ErrorList* analyze (ASTNode* tree)
 		v->postvisit_vardecl = AnalysisVisitor_check_vardecl;
 		v->postvisit_location = AnalysisVisitor_check_location;
 		v->postvisit_program = AnalysisVisitor_check_main;
+        v->postvisit_literal = AnalysisVisitor_var_type_mismatch;
+        // v->postvisit_assignment = AnalysisVisitor_expr_type_mismatch;
 	//
 	
     /* perform analysis, save error list, clean up, and return errors */
