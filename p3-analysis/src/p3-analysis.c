@@ -56,6 +56,12 @@ void AnalysisData_free (AnalysisData* data)
 #define ERROR_LIST (((AnalysisData*)visitor->data)->errors)
 
 /**
+ * @brief Macro for more convenient access to the data inside a @ref AnalysisVisitor
+ * data structure
+ */
+#define DATA ((AnalysisData*)visitor->data)
+
+/**
  * @brief Wrapper for @ref lookup_symbol that reports an error if the symbol isn't found
  * 
  * @param visitor Visitor with the error list for reporting
@@ -89,6 +95,18 @@ void AnalysisVisitor_check_vardecl (NodeVisitor* visitor, ASTNode* node)
 	if (node->vardecl.type == VOID)
 	{
 		ErrorList_printf(ERROR_LIST, "Void variable '%s' on line %d",
+			node->vardecl.name, node->source_line);
+	}
+
+	if (node->vardecl.array_length <= 0)
+	{
+		ErrorList_printf(ERROR_LIST, "Array '%s' size is not greater than 0 on line %d",
+			node->vardecl.name, node->source_line);
+	}
+
+	if (node->vardecl.array_length >= 2 && node->location.index == NULL)
+	{
+		ErrorList_printf(ERROR_LIST, "Array '%s' accesses without an index on line %d",
 			node->vardecl.name, node->source_line);
 	}
 }
@@ -129,7 +147,7 @@ void AnalysisVisitor_check_while (NodeVisitor* visitor, ASTNode* node)
 	}
 }
 
-// if there is no loops there can not be a break or continue
+// if there are no loops there can not be a break or continue
 // UPDATE for edge case where there is loop but break or continue is outside it
 void AnalysisVisitor_check_break_continue (NodeVisitor* visitor, ASTNode* node)
 {
@@ -167,17 +185,14 @@ void AnalysisVisitor_check_funcdecl (NodeVisitor* visitor, ASTNode* node)
 	//AnalysisVisitor_check_block (visitor, node->funcdecl.body, node->funcdecl.return_type);
 }
 
-/*void AnalysisVisitor_check_assignment (NodeVisitor* visitor, ASTNode* node)
+void AnalysisVisitor_check_assignment (NodeVisitor* visitor, ASTNode* node)
 {
-	ASTNode* location = node->assignment.location;
-	ASTNode* value = node->assignment.value;
-	if (location->vardecl.type != value->literal.type)
+	if (GET_INFERRED_TYPE(node->assignment.value) != GET_INFERRED_TYPE(node->assignment.location))
 	{
-		//ErrorList_printf(ERROR_LIST, "Variable '%s' type mismatch on line %d",
-			//node->vardecl.name, node->source_line);
-		ErrorList_printf(ERROR_LIST, "Variable type mismatch on line %d", node->source_line);
+		ErrorList_printf(ERROR_LIST, "Variable '%s' type mismatch on line %d",
+		node->vardecl.name, node->source_line);
 	}
-}*/
+}
 //
 
 ErrorList* analyze (ASTNode* tree)
@@ -203,8 +218,8 @@ ErrorList* analyze (ASTNode* tree)
 		v->postvisit_whileloop = AnalysisVisitor_check_while;
 		v->postvisit_break = AnalysisVisitor_check_break_continue;
 		v->postvisit_continue = AnalysisVisitor_check_break_continue;
-		v->postvisit_return = AnalysisVisitor_check_return;
 		//v->postvisit_assignment = AnalysisVisitor_check_assignment;
+		//v->postvisit_return = AnalysisVisitor_check_return;
 		//v->postvisit_funcdecl = AnalysisVisitor_check_funcdecl;
 	//
 	
