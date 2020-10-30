@@ -5,6 +5,9 @@
  */
 #include "p3-analysis.h"
 
+//global variable for function return type
+DecafType return_type;
+
 /**
  * @brief State/data for static analysis visitor
  */
@@ -107,6 +110,74 @@ void AnalysisVisitor_check_main (NodeVisitor* visitor, ASTNode* node)
         }
     }
 }
+
+void AnalysisVisitor_check_conditional (NodeVisitor* visitor, ASTNode* node)
+{
+	ASTNode* node2 = node->conditional.condition;
+	if (node2->vardecl.type != BOOL)
+	{
+		ErrorList_printf(ERROR_LIST, "Condition must be a boolean type on line %d", node->source_line);
+	}
+}
+
+void AnalysisVisitor_check_while (NodeVisitor* visitor, ASTNode* node)
+{
+	ASTNode* node2 = node->whileloop.condition;
+	if (node2->vardecl.type != BOOL)
+	{
+		ErrorList_printf(ERROR_LIST, "Condition must be a boolean type on line %d", node->source_line);
+	}
+}
+
+// if there is no loops there can not be a break or continue
+// UPDATE for edge case where there is loop but break or continue is outside it
+void AnalysisVisitor_check_break_continue (NodeVisitor* visitor, ASTNode* node)
+{
+	if ((lookup_symbol_with_reporting(visitor, node, "if") != NULL) 
+		|| (lookup_symbol_with_reporting(visitor, node, "while") != NULL))
+	{
+	
+	}
+	else
+	{
+		ErrorList_printf(ERROR_LIST, "Break on line %d can not exist outside of a loop", node->source_line);
+	}
+}
+
+void AnalysisVisitor_check_return (NodeVisitor* visitor, ASTNode* node)
+{
+	if (node->funcreturn.value->vardecl.type != return_type)
+	{
+		ErrorList_printf(ERROR_LIST, "Return type on line %d does not match function return type", node->source_line);
+	}
+}
+
+/*void AnalysisVisitor_check_block (NodeVisitor* visitor, ASTNode* node, DecafType return_type)
+{
+
+}*/
+
+void AnalysisVisitor_check_funcdecl (NodeVisitor* visitor, ASTNode* node)
+{
+	//check parameters - do this in previsit
+
+	return_type = node->funcdecl.return_type;
+	
+	//check function block - might need this
+	//AnalysisVisitor_check_block (visitor, node->funcdecl.body, node->funcdecl.return_type);
+}
+
+/*void AnalysisVisitor_check_assignment (NodeVisitor* visitor, ASTNode* node)
+{
+	ASTNode* location = node->assignment.location;
+	ASTNode* value = node->assignment.value;
+	if (location->vardecl.type != value->literal.type)
+	{
+		//ErrorList_printf(ERROR_LIST, "Variable '%s' type mismatch on line %d",
+			//node->vardecl.name, node->source_line);
+		ErrorList_printf(ERROR_LIST, "Variable type mismatch on line %d", node->source_line);
+	}
+}*/
 //
 
 ErrorList* analyze (ASTNode* tree)
@@ -128,6 +199,13 @@ ErrorList* analyze (ASTNode* tree)
 		v->postvisit_vardecl = AnalysisVisitor_check_vardecl;
 		v->postvisit_location = AnalysisVisitor_check_location;
 		v->postvisit_program = AnalysisVisitor_check_main;
+		v->postvisit_conditional = AnalysisVisitor_check_conditional;
+		v->postvisit_whileloop = AnalysisVisitor_check_while;
+		v->postvisit_break = AnalysisVisitor_check_break_continue;
+		v->postvisit_continue = AnalysisVisitor_check_break_continue;
+		v->postvisit_return = AnalysisVisitor_check_return;
+		//v->postvisit_assignment = AnalysisVisitor_check_assignment;
+		//v->postvisit_funcdecl = AnalysisVisitor_check_funcdecl;
 	//
 	
     /* perform analysis, save error list, clean up, and return errors */
