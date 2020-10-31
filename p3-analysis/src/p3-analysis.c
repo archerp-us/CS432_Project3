@@ -168,21 +168,15 @@ void AnalysisVisitor_check_return (NodeVisitor* visitor, ASTNode* node)
 	{
 		ErrorList_printf(ERROR_LIST, "Return type on line %d does not match function return type", node->source_line);
 	}
+	
+	return_type = VOID;
 }
-
-/*void AnalysisVisitor_check_block (NodeVisitor* visitor, ASTNode* node, DecafType return_type)
-{
-
-}*/
 
 void AnalysisVisitor_check_funcdecl (NodeVisitor* visitor, ASTNode* node)
 {
-	//check parameters - do this in previsit
+	//check parameters first - do this in previsit
 
 	return_type = node->funcdecl.return_type;
-	
-	//check function block - might need this
-	//AnalysisVisitor_check_block (visitor, node->funcdecl.body, node->funcdecl.return_type);
 }
 
 void AnalysisVisitor_check_assignment (NodeVisitor* visitor, ASTNode* node)
@@ -200,7 +194,10 @@ ErrorList* analyze (ASTNode* tree)
 	// Solution
 	if (tree == NULL)
 	{
-		return ErrorList_new();
+		ErrorList* error = ErrorList_new();
+		error->size = 1;
+		return error;
+		//return ErrorList_new();
 	}
 	//
 	
@@ -219,8 +216,8 @@ ErrorList* analyze (ASTNode* tree)
 		v->postvisit_break = AnalysisVisitor_check_break_continue;
 		v->postvisit_continue = AnalysisVisitor_check_break_continue;
 		//v->postvisit_assignment = AnalysisVisitor_check_assignment;
-		//v->postvisit_return = AnalysisVisitor_check_return;
-		//v->postvisit_funcdecl = AnalysisVisitor_check_funcdecl;
+		v->postvisit_funcdecl = AnalysisVisitor_check_funcdecl;
+		v->postvisit_return = AnalysisVisitor_check_return;
 	//
 	
     /* perform analysis, save error list, clean up, and return errors */
